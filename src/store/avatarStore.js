@@ -26,6 +26,10 @@ import { create } from "zustand";
  */
 
 const useAvatarStore = create((set, get) => ({
+  // whether the experience has started
+  started: false,
+  setStarted: (started) => set({ started }),
+
   // current playing animation
   animation: "idle",
 

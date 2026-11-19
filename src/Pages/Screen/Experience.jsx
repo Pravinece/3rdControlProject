@@ -34,7 +34,7 @@ const { posX, posY, posZ, rotX, rotY, rotZ, scale } = useControls('Room', {
         <Canvas camera={{ position: [0, 0, 5], fov: 75 }}  >
             <ambientLight intensity={2} />
             <directionalLight position={[5, 5, 5]} intensity={1.5} />
-                  <Physics >
+                  <Physics debug >
                     <Room
                   scale={scale}
                   position={[posX, posY, posZ]}

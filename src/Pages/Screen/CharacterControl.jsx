@@ -2,6 +2,7 @@ import { useKeyboardControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { CapsuleCollider, RigidBody } from "@react-three/rapier";
 import { useControls, button } from "leva";
+import useAvatarStore from "../../store/avatarStore";
 import { CapsuleGeometry, MeshBasicMaterial } from "three";
 import { useEffect, useRef, useState } from "react";
 import { MathUtils, Vector3 } from "three";
@@ -48,12 +49,35 @@ export default function CharacterControl() {
     capsuleRadius:     { value: 0.17, min: 0.01, max: 1, step: 0.01 },
     showHelper:        true,
   });
+
+  // const { idle, run, stand, walk, talk, sitTalk, jump } = useControls("Animations", {
+  //   run: false,
+  //   idle: true,
+  //   stand: false
+  // });
+
   const rb = useRef();
   const container = useRef();
   const character = useRef();
 
-  const [animation, setAnimation] = useState("idle");
+  const animation = useAvatarStore((state) => state.animation);
+  const setAnimation = useAvatarStore((state) => state.setAnimation);
 
+  useControls("Animations", {
+    Idle:           button(() => setAnimation("idle")),
+    Walking:        button(() => setAnimation("Walking")),
+    Running:        button(() => setAnimation("Runing")),
+    Jumping:        button(() => setAnimation("Jumping")),
+    Sitting:        button(() => setAnimation("Sitting")),
+    Stand_To_Sit:   button(() => setAnimation("Stand_To_Sit")),
+    Sit_To_Stand:   button(() => setAnimation("Sit_To_Stand")),
+    Talking:        button(() => setAnimation("Talking")),
+    Talking2:       button(() => setAnimation("Talking2")),
+    Sitting_Talking:button(() => setAnimation("Sitting_Talking")),
+    Listening:      button(() => setAnimation("Listening_To_Music")),
+    Walk_In_Circle: button(() => setAnimation("Walk_In_Circle")),
+  });
+  
   const characterRotationTarget = useRef(0);
   const rotationTarget = useRef(0);
   const cameraTarget = useRef();
@@ -63,105 +87,96 @@ export default function CharacterControl() {
   const cameraLookAt = useRef(new Vector3());
   const [, get] = useKeyboardControls();
   let isClicking = false
-  useFrame(({ camera, mouse }) => {
-    if (rb.current) {
-      const vel = rb.current.linvel();
+  
+  // useFrame(({ camera, mouse }) => {
+  //   if (rb.current) {
+  //     const vel = rb.current.linvel();
 
-      const movement = {
-        x: 0,
-        z: 0,
-      };
+  //     const movement = {
+  //       x: 0,
+  //       z: 0,
+  //     };
 
-      if (get().forward) {
-        movement.z = 1;
-      }
-      if (get().backward) {
-        movement.z = -1;
-      }
+  //     if (get().forward) {
+  //       movement.z = 1;
+  //     }
+  //     if (get().backward) {
+  //       movement.z = -1;
+  //     }
 
-      let speed = get().run ? RUN_SPEED : WALK_SPEED;
+  //     let speed = get().run ? RUN_SPEED : WALK_SPEED;
 
-      if (isClicking.current) {
-        console.log("clicking", mouse.x, mouse.y);
-        if (Math.abs(mouse.x) > 0.1) {
-          movement.x = -mouse.x;
-        }
-        movement.z = mouse.y + 0.4;
-        if (Math.abs(movement.x) > 0.5 || Math.abs(movement.z) > 0.5) {
-          speed = RUN_SPEED;
-        }
-      }
+  //     // if (isClicking.current) {
+  //     //   console.log("clicking", mouse.x, mouse.y);
+  //     //   if (Math.abs(mouse.x) > 0.1) {
+  //     //     movement.x = -mouse.x;
+  //     //   }
+  //     //   movement.z = mouse.y + 0.4;
+  //     //   if (Math.abs(movement.x) > 0.5 || Math.abs(movement.z) > 0.5) {
+  //     //     speed = RUN_SPEED;
+  //     //   }
+  //     // }
 
-      if (get().left) {
-        movement.x = 1;
-      }
-      if (get().right) {
-        movement.x = -1;
-      }
+  //     if (get().left) {
+  //       movement.x = 1;
+  //     }
+  //     if (get().right) {
+  //       movement.x = -1;
+  //     }
 
-      if (movement.x !== 0) {
-        rotationTarget.current += ROTATION_SPEED * movement.x;
-      }
+  //     if (movement.x !== 0) {
+  //       rotationTarget.current += ROTATION_SPEED * movement.x;
+  //     }
 
-      if (movement.x !== 0 || movement.z !== 0) {
-        characterRotationTarget.current = Math.atan2(movement.x, movement.z);
-        vel.x =
-          Math.sin(rotationTarget.current + characterRotationTarget.current) *
-          speed;
-        vel.z =
-          Math.cos(rotationTarget.current + characterRotationTarget.current) *
-          speed;
-        if (speed === RUN_SPEED) {
-          setAnimation("run");
-        } else {
-          setAnimation("walk");
-        }
-      } else {
-        setAnimation("idle");
-      }
-      character.current.rotation.y = lerpAngle(
-        character.current.rotation.y,
-        characterRotationTarget.current,
-        0.1
-      );
+  //     if (movement.x !== 0 || movement.z !== 0) {
+  //       characterRotationTarget.current = Math.atan2(movement.x, movement.z);
+  //       vel.x =Math.sin(rotationTarget.current + characterRotationTarget.current) * speed;
+  //       vel.z =Math.cos(rotationTarget.current + characterRotationTarget.current) *speed;
+  //       if (speed === RUN_SPEED) {
+  //         setAnimation("Runing");
+  //       } else {
+  //         setAnimation("Walking");
+  //       }
+  //     } else {
+  //       setAnimation("idle");
+  //     }
+  //     character.current.rotation.y = lerpAngle(
+  //       character.current.rotation.y,
+  //       characterRotationTarget.current,
+  //       0.1
+  //     );
 
-      rb.current.setLinvel(vel, true);
-    }
+  //     rb.current.setLinvel(vel, true);
+  //   }
 
-    // CAMERA
-    container.current.rotation.y = MathUtils.lerp(
-      container.current.rotation.y,
-      rotationTarget.current,
-      0.1
-    );
+  //   // CAMERA
+  //   container.current.rotation.y = MathUtils.lerp(
+  //     container.current.rotation.y,
+  //     rotationTarget.current,
+  //     0.1
+  //   );
 
-    cameraPosition.current.getWorldPosition(cameraWorldPosition.current);
-    camera.position.lerp(cameraWorldPosition.current, 0.1);
+  //   cameraPosition.current.getWorldPosition(cameraWorldPosition.current);
+  //   camera.position.lerp(cameraWorldPosition.current, 0.1);
 
-    if (cameraTarget.current) {
-      cameraTarget.current.getWorldPosition(cameraLookAtWorldPosition.current);
-      cameraLookAt.current.lerp(cameraLookAtWorldPosition.current, 0.1);
+  //   if (cameraTarget.current) {
+  //     cameraTarget.current.getWorldPosition(cameraLookAtWorldPosition.current);
+  //     cameraLookAt.current.lerp(cameraLookAtWorldPosition.current, 0.1);
 
-      camera.lookAt(cameraLookAt.current);
-    }
-  });
+  //     camera.lookAt(cameraLookAt.current);
+  //   }
+  // });
 
   return (
-    <RigidBody colliders={false} lockRotations ref={rb}>
+    <RigidBody colliders={false} lockRotations ref={rb} position={[2.5, -0.2, -0.6]}>
       <group ref={container}>
-        <group ref={cameraTarget} position-z={0} />
+        <group ref={cameraTarget} position-z={0} />ws
         <group ref={cameraPosition} position-y={2} position-z={4} />
         <group ref={character}>
-          <Avatar scale={1} position={[0,-0.2,0]} animation={animation} />
+          <Avatar scale={1} position={[0,0,0]} animation={animation} />
         </group>
       </group>
-      <CapsuleCollider args={[capsuleHalfHeight, capsuleRadius]} />
-        {showHelper && (
-            <mesh position={[0, capsuleHalfHeight + capsuleRadius, 0]}>
-            <capsuleGeometry args={[capsuleRadius, capsuleHalfHeight * 2, 8, 16]} />
-            <meshBasicMaterial color="lime" wireframe />
-            </mesh>
-        )}
+      <CapsuleCollider args={[capsuleHalfHeight, capsuleRadius]}  />
     </RigidBody>
   );
 };
