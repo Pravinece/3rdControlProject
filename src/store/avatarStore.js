@@ -1,5 +1,11 @@
 import { create } from "zustand";
 
+export const AVATAR_POSITIONS = {
+  freeStyle: { position: [0, 0, 0],        label: 'Free Style' },
+  talk:      { position: [0, 1, 0],        label: 'Talk' },
+  sitTalk:   { position: [2.5, -0.2, -0.6], label: 'Sit & Talk' },
+};
+
 /**
  * ANIMATION KEYS  (match the names you assign in Avatar.jsx)
  * "idle"            → built-in GLB animation
@@ -29,6 +35,22 @@ const useAvatarStore = create((set, get) => ({
   // whether the experience has started
   started: false,
   setStarted: (started) => set({ started }),
+
+  // current mode: 'freeStyle' | 'talk' | 'sitTalk'
+  mode: 'freeStyle',
+  setMode: (mode) => set({ mode }),
+
+  // whether avatar is currently talking
+  isTalking: false,
+  setIsTalking: (isTalking) => set({ isTalking }),
+
+  // lipsync morph target values
+  morphValues: { jawOpen: 0, mouthFunnel: 0, mouthSmileLeft: 0, mouthSmileRight: 0 },
+  setMorphValues: (morphValues) => set({ morphValues }),
+
+  // whether the bot is currently speaking
+  isSpeaking: false,
+  setIsSpeaking: (isSpeaking) => set({ isSpeaking }),
 
   // current playing animation
   animation: "idle",

@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { Canvas } from '@react-three/fiber'
-import React from 'react'
+import React, { useMemo } from 'react'
 import CharacterControl from './CharacterControl'
-import { KeyboardControls } from '@react-three/drei';
+import { Html, KeyboardControls } from '@react-three/drei';
 import { Physics, RigidBody } from '@react-three/rapier';
 import { Room } from './Room';
 import { useControls } from 'leva';
+import { AVATAR_POSITIONS } from '../../datas/positions'
+import useAvatarStore from '../../store/avatarStore';
 
-function Experience() {
+function Experience({ morphValues, isPlaying }) {
     
 const keyboardMap = [
   { name: "forward", keys: ["ArrowUp", "KeyW"] },
@@ -26,12 +29,34 @@ const { posX, posY, posZ, rotX, rotY, rotZ, scale } = useControls('Room', {
   scale: { value: 1, min: 0.1, max: 10, step: 0.1 },
 });
 
+const setStoreMode   = useAvatarStore((state) => state.setMode);
+const setIsSpeaking  = useAvatarStore((state) => state.setIsSpeaking);
+const setAnimation   = useAvatarStore((state) => state.setAnimation);
+
+let [mode, setMode] = useState("freeStyle")
+let positions = useMemo(()=>{
+  return AVATAR_POSITIONS[mode]
+},[mode])
+
+const handleMode = (id) => {
+  setMode(id);
+  setStoreMode(id);
+  setIsSpeaking(false);
+  if (id === 'sitAndTalk') setAnimation('Sitting');
+  else setAnimation('idle');
+};
+
+const buttons = [
+  {id: "sitAndTalk", label: "sit and talk", position: [5.0, -1, 0]},
+  {id: "freeStyle", label: "Free style", position: [-1, -1, 2]},
+  {id: "standAndTalk", label: "Talk", position: [1.40, -0.37, 2.52]},
+]
 
   return (
     <div className='canvas'>
 
     <KeyboardControls map={keyboardMap}>
-        <Canvas camera={{ position: [0, 0, 6], fov: 75 }}  >
+        <Canvas camera={{ position: positions.camPosition, fov: 75 }}  >
             <ambientLight intensity={2} />
             <directionalLight position={[5, 5, 5]} intensity={1.5} />
                   <Physics debug >
@@ -47,9 +72,27 @@ const { posX, posY, posZ, rotX, rotY, rotZ, scale } = useControls('Room', {
                         <meshBasicMaterial visible={false} />
                       </mesh>
                     </RigidBody>
-                    <CharacterControl />
+                    <CharacterControl morphValues={morphValues} isPlaying={isPlaying} position={positions} />
                 </Physics>
             {/* <OrbitControls  enableRotate={true}/> */}
+
+            {buttons.map((item,i)=>
+            (<Html position={item.position} center>
+              <button
+                onClick={() => handleMode(item.id)}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: "#111827",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.label}
+              </button>
+            </Html>))}
         </Canvas>
     </KeyboardControls>
     </div>

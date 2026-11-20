@@ -8,10 +8,12 @@ import { useGraph } from '@react-three/fiber'
 import { useGLTF, useAnimations, useFBX } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import useAvatarStore from '../../store/avatarStore'
+import { AVATAR_POSITIONS } from '../../datas/positions'
+import useMorphTargets from './useMorphTargets'
 
-export function Avatar(props) {
+export function Avatar({ morphValues, isPlaying, ...props }) {
   const group = React.useRef()
-  const { scene, animations } = useGLTF('/models/pravinglb.glb')
+  const { scene, animations } = useGLTF('/models/prr.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone)
 
@@ -60,12 +62,28 @@ export function Avatar(props) {
     group
   );
   
-  const animation = useAvatarStore((state) => state.animation);
+  const animation   = useAvatarStore((state) => state.animation);
+  const isSpeaking   = useAvatarStore((state) => state.isSpeaking);
+  const mode         = useAvatarStore((state) => state.mode);
+  const setAnimation = useAvatarStore((state) => state.setAnimation);
 
+  // switch talk animation based on mode when speaking starts/stops
   useEffect(() => {
+    if (isSpeaking) {
+      if (mode === 'sitAndTalk') setAnimation('Sitting_Talking');
+      else setAnimation('Talking');
+    } else {
+      if (mode === 'sitAndTalk') setAnimation('Sitting');
+      else setAnimation('idle');
+    }
+  }, [isSpeaking]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useMorphTargets(clone, morphValues);
+  
+  useEffect(() => {
+    Object.values(actions).forEach((a) => a?.fadeOut(0.5));
     actions[animation]?.reset().fadeIn(0.5).play();
-    return () => actions[animation]?.fadeOut(0.5);
-  }, [animation, actions]);
+  }, [animation]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   // useFrame((state) => {
@@ -77,16 +95,31 @@ export function Avatar(props) {
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">
-        <group name="Armature">
+        {/* <group name="Armature">
           <primitive object={nodes.Hips} />
           <skinnedMesh name="avaturn_body" geometry={nodes.avaturn_body.geometry} material={materials.avaturn_body_material} skeleton={nodes.avaturn_body.skeleton} />
           <skinnedMesh name="avaturn_hair_0" geometry={nodes.avaturn_hair_0.geometry} material={materials.avaturn_hair_0_material} skeleton={nodes.avaturn_hair_0.skeleton} />
           <skinnedMesh name="avaturn_shoes_0" geometry={nodes.avaturn_shoes_0.geometry} material={materials.avaturn_shoes_0_material} skeleton={nodes.avaturn_shoes_0.skeleton} />
           <skinnedMesh name="avaturn_look_0" geometry={nodes.avaturn_look_0.geometry} material={materials.avaturn_look_0_material} skeleton={nodes.avaturn_look_0.skeleton} />
+        </group> */}
+        <group name="Armature">
+          <primitive object={nodes.Hips} />
+          <skinnedMesh name="Body_Mesh" geometry={nodes.Body_Mesh.geometry} material={materials.Body} skeleton={nodes.Body_Mesh.skeleton} />
+          <skinnedMesh name="avaturn_glasses_0" geometry={nodes.avaturn_glasses_0.geometry} material={materials.avaturn_glasses_0_material} skeleton={nodes.avaturn_glasses_0.skeleton} />
+          <skinnedMesh name="avaturn_glasses_1" geometry={nodes.avaturn_glasses_1.geometry} material={materials.avaturn_glasses_1_material} skeleton={nodes.avaturn_glasses_1.skeleton} />
+          <skinnedMesh name="avaturn_hair_0" geometry={nodes.avaturn_hair_0.geometry} material={materials.avaturn_hair_0_material} skeleton={nodes.avaturn_hair_0.skeleton} />
+          <skinnedMesh name="avaturn_shoes_0" geometry={nodes.avaturn_shoes_0.geometry} material={materials.avaturn_shoes_0_material} skeleton={nodes.avaturn_shoes_0.skeleton} />
+          <skinnedMesh name="avaturn_look_0" geometry={nodes.avaturn_look_0.geometry} material={materials.avaturn_look_0_material} skeleton={nodes.avaturn_look_0.skeleton} />
+          <skinnedMesh name="Eye_Mesh" geometry={nodes.Eye_Mesh.geometry} material={materials.Eyes} skeleton={nodes.Eye_Mesh.skeleton} morphTargetDictionary={nodes.Eye_Mesh.morphTargetDictionary} morphTargetInfluences={nodes.Eye_Mesh.morphTargetInfluences} />
+          <skinnedMesh name="Eyelash_Mesh" geometry={nodes.Eyelash_Mesh.geometry} material={materials.Eyelash} skeleton={nodes.Eyelash_Mesh.skeleton} morphTargetDictionary={nodes.Eyelash_Mesh.morphTargetDictionary} morphTargetInfluences={nodes.Eyelash_Mesh.morphTargetInfluences} />
+          <skinnedMesh name="Head_Mesh" geometry={nodes.Head_Mesh.geometry} material={materials.Head} skeleton={nodes.Head_Mesh.skeleton} morphTargetDictionary={nodes.Head_Mesh.morphTargetDictionary} morphTargetInfluences={nodes.Head_Mesh.morphTargetInfluences} />
+          <skinnedMesh name="Teeth_Mesh" geometry={nodes.Teeth_Mesh.geometry} material={materials.Teeth} skeleton={nodes.Teeth_Mesh.skeleton} morphTargetDictionary={nodes.Teeth_Mesh.morphTargetDictionary} morphTargetInfluences={nodes.Teeth_Mesh.morphTargetInfluences} />
+          <skinnedMesh name="Tongue_Mesh" geometry={nodes.Tongue_Mesh.geometry} material={materials.Teeth} skeleton={nodes.Tongue_Mesh.skeleton} morphTargetDictionary={nodes.Tongue_Mesh.morphTargetDictionary} morphTargetInfluences={nodes.Tongue_Mesh.morphTargetInfluences} />
+          <skinnedMesh name="EyeAO_Mesh" geometry={nodes.EyeAO_Mesh.geometry} material={materials.EyeAO} skeleton={nodes.EyeAO_Mesh.skeleton} morphTargetDictionary={nodes.EyeAO_Mesh.morphTargetDictionary} morphTargetInfluences={nodes.EyeAO_Mesh.morphTargetInfluences} />
         </group>
       </group>
     </group>
   )
 }
 
-useGLTF.preload('/models/pravinglb.glb')
+useGLTF.preload('/models/prr.glb')
