@@ -6,6 +6,9 @@ import useAvatarStore from "../../store/avatarStore";
 import { useEffect, useRef } from "react";
 import { degToRad } from "three/src/math/MathUtils.js";
 import { Avatar } from "./Avatar";
+import { calculatePath, followPath } from './NavigationManager'
+import { AVATAR_POSITIONS } from '../../datas/positions'
+
 const normalizeAngle = (angle) => {
   while (angle > Math.PI) angle -= 2 * Math.PI;
   while (angle < -Math.PI) angle += 2 * Math.PI;
@@ -40,6 +43,9 @@ export default function CharacterControl({ morphValues, isPlaying, position }) {
   const rb = useRef();
   const container = useRef();
   const character = useRef();
+  const progressRef = useRef(0);
+  const pathRef     = useRef(null);  // stores { curve, targetRotation }
+  const navigating  = useRef(false);
 
   const animation    = useAvatarStore((state) => state.animation);
   const setAnimation = useAvatarStore((state) => state.setAnimation);
@@ -47,9 +53,39 @@ export default function CharacterControl({ morphValues, isPlaying, position }) {
   const walkingRef   = useRef(false);
 
   // walk to target position whenever mode changes
+  // useEffect(() => {
+  //   walkingRef.current = true;
+  // }, [mode]);
+
   useEffect(() => {
-    walkingRef.current = true;
-  }, [mode]);
+  if (!rb.current || mode === 'freeStyle') return;
+  const from = rb.current.translation();
+  const result = calculatePath(new THREE.Vector3(from.x, from.y, from.z), mode, AVATAR_POSITIONS);
+  if (result) {
+    pathRef.current   = result;
+    progressRef.current = 0;
+    navigating.current  = true;
+    setAnimation('Walking');
+  }
+}, [mode]);
+
+  useFrame(()=>{
+    if (navigating.current && pathRef.current) {
+  const still = followPath({
+    rbRef: rb,
+    characterRef: character,
+    progressRef,
+    curve: pathRef.current.curve,
+    targetRotation: pathRef.current.targetRotation,
+    speed: WALK_SPEED,
+    delta,
+    onArrive: () => {
+      navigating.current = false;
+      setAnimation('idle');
+    },
+  });
+}
+  },[])
 
 
   return (

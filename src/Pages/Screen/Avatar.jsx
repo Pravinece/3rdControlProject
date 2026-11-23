@@ -4,7 +4,7 @@ Command: npx gltfjsx@6.5.3 public/models/pravinglb.glb -o src/Pages/Screen/Avata
 */
 
 import React, { useEffect } from 'react'
-import { useGraph } from '@react-three/fiber'
+import { useFrame, useGraph } from '@react-three/fiber'
 import { useGLTF, useAnimations, useFBX } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import useAvatarStore from '../../store/avatarStore'

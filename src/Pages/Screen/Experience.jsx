@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Canvas } from '@react-three/fiber'
 import React, { useMemo } from 'react'
 import CharacterControl from './CharacterControl'
-import { Html, KeyboardControls } from '@react-three/drei';
+import { Html, KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Physics, RigidBody } from '@react-three/rapier';
 import { Room } from './Room';
 import { useControls } from 'leva';
-import { AVATAR_POSITIONS } from '../../datas/positions'
+import { AVATAR_POSITIONS, buttons } from '../../datas/positions'
 import useAvatarStore from '../../store/avatarStore';
+import { CameraFromTo } from './CameraFromTo';
 
 function Experience({ morphValues, isPlaying }) {
     
@@ -36,7 +37,7 @@ const setAnimation   = useAvatarStore((state) => state.setAnimation);
 let [mode, setMode] = useState("freeStyle")
 let positions = useMemo(()=>{
   return AVATAR_POSITIONS[mode]
-},[mode])
+},[mode,])
 
 const handleMode = (id) => {
   setMode(id);
@@ -46,20 +47,16 @@ const handleMode = (id) => {
   else setAnimation('idle');
 };
 
-const buttons = [
-  {id: "sitAndTalk", label: "sit and talk", position: [5.0, -1, 0]},
-  {id: "freeStyle", label: "Free style", position: [-1, -1, 2]},
-  {id: "standAndTalk", label: "Talk", position: [1.40, -0.37, 2.52]},
-]
+
 
   return (
     <div className='canvas'>
 
     <KeyboardControls map={keyboardMap}>
-        <Canvas camera={{ position: positions.camPosition, fov: 75 }}  >
+        <Canvas camera={{ position: positions.camPosition, fov: positions.fov }}  >
             <ambientLight intensity={2} />
             <directionalLight position={[5, 5, 5]} intensity={1.5} />
-                  <Physics debug >
+                  <Physics >
                     <Room
                   scale={scale}
                   position={[posX, posY, posZ]}
@@ -74,7 +71,8 @@ const buttons = [
                     </RigidBody>
                     <CharacterControl morphValues={morphValues} isPlaying={isPlaying} position={positions} />
                 </Physics>
-            {/* <OrbitControls  enableRotate={true}/> */}
+                {/* <OrbitControls enableRotate={true} /> */}
+            <CameraFromTo mode={mode} />
 
             {buttons.map((item,i)=>
             (<Html position={item.position} center>
