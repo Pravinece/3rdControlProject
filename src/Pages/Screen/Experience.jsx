@@ -9,6 +9,7 @@ import { useControls } from 'leva';
 import { AVATAR_POSITIONS, buttons } from '../../datas/positions'
 import useAvatarStore from '../../store/avatarStore';
 import { CameraFromTo } from './CameraFromTo';
+import { createGrid, OBSTACLE_NAMES } from '../../datas/obstacles';
 
 function Experience({ morphValues, isPlaying }) {
     
@@ -69,7 +70,7 @@ const handleMode = (id) => {
                         <meshBasicMaterial visible={false} />
                       </mesh>
                     </RigidBody>
-                    <CharacterControl morphValues={morphValues} isPlaying={isPlaying} position={positions} />
+                    {/* <CharacterControl morphValues={morphValues} isPlaying={isPlaying} position={positions} /> */}
                 </Physics>
                 {/* <OrbitControls enableRotate={true} /> */}
             <CameraFromTo mode={mode} />

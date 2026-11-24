@@ -120,6 +120,7 @@ export function calculatePath(from, mode, AVATAR_POSITIONS) {
  * @param {Function}               opts.onArrive       - called once when destination reached
  * @returns {boolean} true = still moving, false = arrived
  */
+
 export function followPath({ rbRef, characterRef, progressRef, curve, targetRotation, speed, delta, onArrive }) {
   if (!rbRef.current || !curve) return false;
 
